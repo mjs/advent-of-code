@@ -4,44 +4,31 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"regexp"
-	"strconv"
 	"strings"
 )
 
-func isValidPart1(line string) bool {
-	min, max, c, password := parseLine(line)
-	if min < 0 {
-		return false
-	}
-	count := strings.Count(password, c)
-	return min <= count && count <= max
+type parsed struct {
+	i, j     int
+	ch       string
+	password string
 }
 
-func isValidPart2(line string) bool {
-	i, j, c, password := parseLine(line)
-	if i < 0 {
-		return false
-	}
-	if j > len(password) {
-		return false
-	}
-	ch := c[0]
-	a := password[i-1]
-	b := password[j-1]
-	return (a == ch || b == ch) && a != b
+func parseLine(line string) (parsed, error) {
+	var p parsed
+	_, err := fmt.Sscanf(line, "%d-%d %1s: %s", &p.i, &p.j, &p.ch, &p.password)
+	return p, err
+}
+func isValidPart1(p parsed) bool {
+	count := strings.Count(p.password, p.ch)
+	return p.i <= count && count <= p.j
 }
 
-var reLine = regexp.MustCompile(`^(\d+)-(\d+) (.): (.+)$`)
-
-func parseLine(line string) (int, int, string, string) {
-	m := reLine.FindStringSubmatch(line)
-	if m == nil {
-		return -1, 0, "", ""
+func isValidPart2(p parsed) bool {
+	if p.j > len(p.password) {
+		return false
 	}
-	a, _ := strconv.Atoi(m[1])
-	b, _ := strconv.Atoi(m[2])
-	return a, b, m[3], m[4]
+	ch := p.ch[0]
+	return (p.password[p.i-1] == ch) != (p.password[p.j-1] == ch)
 }
 
 func main() {
@@ -49,12 +36,16 @@ func main() {
 	part2Count := 0
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
-		line := scanner.Text()
-		if isValidPart1(line) {
-			part1Count++
-		}
-		if isValidPart2(line) {
-			part2Count++
+		line, err := parseLine(scanner.Text())
+		if err != nil {
+			fmt.Printf("failed to parse %q: %v\n", scanner.Text(), err)
+		} else {
+			if isValidPart1(line) {
+				part1Count++
+			}
+			if isValidPart2(line) {
+				part2Count++
+			}
 		}
 	}
 
