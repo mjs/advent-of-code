@@ -1,3 +1,4 @@
+import itertools
 import math
 import sys
 
@@ -32,14 +33,13 @@ class Map:
 
 def count_trees(m, slope):
     right, down = slope
-    row, col = 0, 0
-    tree_count = 0
-    while row < m.height():
-        if m.is_tree(row, col):
-            tree_count += 1
-        col += right
-        row += down
-    return tree_count
+    return sum(1 
+        for row, col in zip(
+            range(0, m.height(), down), 
+            itertools.count(0, right),
+        )
+        if m.is_tree(row, col)
+     )
 
 
 def main():
